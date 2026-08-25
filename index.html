@@ -1,0 +1,631 @@
+<title>Augmentation Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
+<style>
+:root{
+  --slate:#44546A; --deep:#2E3D50; --teal:#26B6A6; --orange:#D98617;
+  --ground:#F7F9FB; --card:#FFFFFF; --ink:#151F2B; --muted:#65788D;
+  --line:#DBE3EB; --tint:#EDF3F7;
+  --c0:#D98617; --c1:#7C9AB8; --c2:#3FA9C9; --c3:#26B6A6;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,Segoe UI,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --sh:0 1px 2px rgba(21,31,43,.05),0 10px 30px rgba(21,31,43,.06);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0F1720; --card:#18232F; --ink:#E6EDF4; --muted:#93A7BB;
+  --line:#2A3947; --tint:#1E2C3A; --slate:#3C4B60; --deep:#0B121A;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}}
+:root[data-theme="dark"]{
+  --ground:#0F1720; --card:#18232F; --ink:#E6EDF4; --muted:#93A7BB;
+  --line:#2A3947; --tint:#1E2C3A; --slate:#3C4B60; --deep:#0B121A;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.5;
+  -webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;letter-spacing:-.022em;text-wrap:balance;font-weight:600}
+p{margin:0}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+input{font:inherit}
+:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-radius:4px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.lab{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--muted)}
+
+/* shell */
+header{position:sticky;top:0;z-index:30;background:var(--ground);border-bottom:1px solid var(--line)}
+.hin{max-width:1220px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:22px}
+.brand{display:flex;align-items:baseline;gap:10px;flex:0 0 auto}
+.brand b{font-size:15px;font-weight:600;letter-spacing:-.02em}
+.brand span{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.steps{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto}
+.steps button{display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:7px;
+  font-size:12.5px;color:var(--muted);white-space:nowrap}
+.steps button i{font-family:var(--mono);font-size:10px;font-style:normal;width:17px;height:17px;
+  border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;flex:0 0 auto}
+.steps button[data-on="1"]{background:var(--tint);color:var(--ink);font-weight:600}
+.steps button[data-on="1"] i{background:var(--orange);border-color:var(--orange);color:#fff}
+.steps button[data-done="1"] i{background:var(--teal);border-color:var(--teal);color:#08302C}
+.tbtn{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  border:1px solid var(--line);padding:7px 11px;border-radius:999px;color:var(--muted)}
+
+main{max-width:1220px;margin:0 auto;padding:34px 28px 90px}
+.pane{display:none} .pane.on{display:block}
+.head{margin-bottom:24px}
+.h1{font-size:clamp(26px,3vw,36px);line-height:1.1}
+.sub{color:var(--muted);margin-top:9px;max-width:66ch;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;box-shadow:var(--sh)}
+.row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.rule{height:1px;background:var(--line);border:0;margin:20px 0}
+
+/* nav */
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);z-index:30}
+.navin{max-width:1220px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;
+  justify-content:space-between;gap:16px}
+.go{background:var(--orange);color:#fff;font-weight:600;font-size:14px;padding:11px 22px;border-radius:9px}
+.go[disabled]{opacity:.35;cursor:not-allowed}
+.ghost{border:1px solid var(--line);padding:10px 17px;border-radius:9px;font-size:13.5px;color:var(--muted)}
+.hint{font-size:12.5px;color:var(--muted)}
+
+/* inputs */
+.field{display:flex;flex-direction:column;gap:7px}
+.inp{background:var(--ground);border:1px solid var(--line);border-radius:9px;padding:11px 13px;
+  color:var(--ink);font-size:14.5px;width:100%}
+.inp:focus{outline:none;border-color:var(--orange)}
+.big{font-family:var(--mono);font-size:30px;font-weight:600;letter-spacing:-.03em;padding:9px 13px;
+  text-align:right;width:150px}
+.stat{font-family:var(--mono);font-weight:600;letter-spacing:-.035em;line-height:1;
+  font-size:clamp(30px,3.6vw,44px)}
+
+/* task list */
+.tl{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+.ti{display:grid;grid-template-columns:1fr 108px 34px;gap:9px;align-items:center}
+.ti .inp{padding:9px 12px;font-size:14px}
+.ti .x{color:var(--muted);font-size:17px;line-height:1;text-align:center}
+.ti .x:hover{color:var(--orange)}
+.seed{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.seed button{font-size:12px;padding:6px 10px;border-radius:999px;border:1px dashed var(--line);color:var(--muted)}
+.seed button:hover{border-color:var(--teal);color:var(--ink)}
+
+/* decide */
+.decide{display:grid;grid-template-columns:1fr 348px;gap:22px;align-items:start}
+.q{padding:15px 0}
+.q+.q{border-top:1px solid var(--line)}
+.q p{font-size:14.5px;font-weight:500;margin-bottom:10px}
+.opts{display:flex;gap:6px;flex-wrap:wrap}
+.opts button{font-size:12.5px;padding:8px 13px;border-radius:8px;border:1px solid var(--line);
+  color:var(--muted);transition:all .12s}
+.opts button:hover{border-color:var(--muted);color:var(--ink)}
+.opts button[data-sel="1"]{background:var(--slate);border-color:var(--slate);color:#fff;font-weight:500}
+
+.read{position:sticky;top:88px}
+.gauge{position:relative;height:74px;margin:16px 0 6px}
+.gauge .tr{position:absolute;top:26px;left:12.5%;right:12.5%;height:2px;background:var(--line)}
+.gauge .pip{position:absolute;top:20px;width:14px;height:14px;border-radius:50%;
+  background:var(--line);transform:translateX(-50%);transition:all .3s}
+.gauge .pip.on{width:26px;height:26px;top:14px;box-shadow:0 0 0 6px rgba(217,134,23,.15)}
+.gauge .cap{position:absolute;top:48px;transform:translateX(-50%);font-family:var(--mono);
+  font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  text-align:center;width:82px;line-height:1.3}
+.verdict{font-size:20px;font-weight:600;letter-spacing:-.02em}
+.because{font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.55}
+.override{display:flex;gap:5px;margin-top:14px;flex-wrap:wrap}
+.override button{flex:1;min-width:74px;font-size:11px;padding:8px 6px;border-radius:7px;
+  border:1px solid var(--line);color:var(--muted);text-align:center;line-height:1.3}
+.override button[data-sel="1"]{border-color:var(--orange);background:rgba(217,134,23,.1);color:var(--ink);font-weight:600}
+.pager{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:18px}
+.pager button{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);
+  font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.pager button[data-on="1"]{border-color:var(--ink);color:var(--ink);font-weight:600}
+.pager button[data-fill="1"]{background:var(--teal);border-color:var(--teal);color:#08302C}
+
+/* map */
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.col{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px;min-height:200px;
+  display:flex;flex-direction:column;gap:9px;box-shadow:var(--sh)}
+.col h3{font-size:14px}
+.colbar{height:3px;border-radius:2px;margin-bottom:2px}
+.chip{background:var(--tint);border-radius:8px;padding:9px 11px;font-size:12.5px;line-height:1.35}
+.chip b{display:block;font-weight:500}
+.chip span{font-family:var(--mono);font-size:10.5px;color:var(--muted)}
+.tot{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:18px}
+.assum{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted);flex-wrap:wrap}
+.assum input{width:56px;background:var(--ground);border:1px solid var(--line);border-radius:6px;
+  padding:5px 7px;font-family:var(--mono);font-size:12px;text-align:right;color:var(--ink)}
+
+/* levers */
+.lev{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:6px}
+.lev button{text-align:left;background:var(--card);border:1px solid var(--line);border-radius:13px;
+  padding:18px;display:flex;flex-direction:column;gap:8px;box-shadow:var(--sh)}
+.lev button[data-sel="1"]{border-color:var(--orange);box-shadow:0 0 0 3px rgba(217,134,23,.13)}
+.lev h3{font-size:15.5px}
+.lev p{font-size:13px;color:var(--muted)}
+.final{background:var(--slate);color:#fff;border-radius:14px;padding:26px;margin-top:20px}
+.final .stat{color:var(--orange)}
+.cta{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:20px 24px;
+  margin-top:16px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+
+@media (max-width:960px){
+  .decide{grid-template-columns:1fr}
+  .read{position:static}
+  .cols,.tot{grid-template-columns:repeat(2,1fr)}
+  .lev{grid-template-columns:1fr}
+  .grid3{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .hin,.navin,main{padding-left:16px;padding-right:16px}
+  .cols,.tot{grid-template-columns:1fr}
+  .steps button span{display:none}
+}
+@media print{
+  header,.nav,.pager,.override,.seed{display:none!important}
+  .pane{display:none!important} .pane.print{display:block!important}
+  body{background:#fff}
+}
+</style>
+
+<header>
+  <div class="hin">
+    <div class="brand"><b>Augmentation Map</b><span>WAVE</span></div>
+    <div class="steps" id="steps"></div>
+    <button class="tbtn" id="theme">Theme</button>
+  </div>
+</header>
+
+<main>
+  <!-- 1 -->
+  <section class="pane on" data-p="0">
+    <div class="head">
+      <h1 class="h1">Calibrate it to your organisation</h1>
+      <p class="sub">Three questions. Each one changes the answers this tool gives you, which is why they come first rather than as background.</p>
+    </div>
+    <div class="card">
+      <div class="q"><p>How regulated is your organisation?</p>
+        <div class="opts" id="cq1"></div><p class="hint" id="cq1h" style="margin-top:9px"></p></div>
+      <div class="q"><p>Where does AI stand in your organisation today?</p>
+        <div class="opts" id="cq2"></div><p class="hint" id="cq2h" style="margin-top:9px"></p></div>
+      <div class="q"><p>Roughly what does an hour of your people's time cost, fully loaded?</p>
+        <div class="row">
+          <span class="mono" style="font-size:26px;color:var(--muted)">$</span>
+          <input id="rate" class="inp big" type="number" min="0" max="2000" value="85" style="width:132px">
+          <span class="hint" style="max-width:40ch">Salary plus on-costs and overhead, not the salary alone. A rough number is fine. You can change it on the map.</span>
+        </div></div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="pane" data-p="1">
+    <div class="head">
+      <h1 class="h1">Pick one workflow and break it apart</h1>
+      <p class="sub">Choose something high effort and high frustration. List the tasks the way your team would describe them, with a rough guess at hours per week across everyone who touches it.</p>
+    </div>
+    <div class="card">
+      <div class="row" style="align-items:flex-end">
+        <div class="field" style="flex:2;min-width:260px"><label class="lab" for="wfname">Workflow</label>
+          <input id="wfname" class="inp" placeholder="e.g. Member complaint handling"></div>
+        <div class="field" style="flex:1;min-width:180px"><label class="lab" for="wffn">Function</label>
+          <input id="wffn" class="inp" placeholder="e.g. Operations"></div>
+      </div>
+      <hr class="rule">
+      <div class="row" style="justify-content:space-between">
+        <p class="lab">Tasks in this workflow</p>
+        <p class="lab">Hours per week</p>
+      </div>
+      <div class="tl" id="tl"></div>
+      <div class="row" style="margin-top:12px">
+        <button class="ghost" id="addTask">Add a task</button>
+        <span class="hint">Six to ten tasks is the right level. Too few and the map says nothing.</span>
+      </div>
+      <p class="lab" style="margin-top:18px">Or start from a common one</p>
+      <div class="seed" id="seed"></div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="pane" data-p="2">
+    <div class="head">
+      <h1 class="h1">Decide, task by task</h1>
+      <p class="sub">Six questions per task. The framework proposes a position on the scale and tells you why. You can overrule it, and often you should.</p>
+    </div>
+    <div class="pager" id="pager"></div>
+    <div class="decide">
+      <div class="card">
+        <p class="lab">Task</p>
+        <h2 style="font-size:19px;margin:5px 0 4px" id="tname">—</h2>
+        <p class="hint mono" id="thrs"></p>
+        <div id="qs" style="margin-top:6px"></div>
+      </div>
+      <div class="read">
+        <div class="card">
+          <p class="lab">Recommendation</p>
+          <div class="gauge" id="gauge"></div>
+          <p class="verdict" id="verdict">Answer the questions</p>
+          <p class="because" id="because">The reading updates as you go.</p>
+          <p class="lab" style="margin-top:16px">Your call</p>
+          <div class="override" id="ov"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="pane" data-p="3">
+    <div class="head">
+      <h1 class="h1" id="maptitle">Your augmentation map</h1>
+      <p class="sub" id="mapsub"></p>
+    </div>
+    <div class="cols" id="cols"></div>
+    <div class="card" style="margin-top:18px">
+      <div class="tot">
+        <div><p class="lab">Hours per week now</p><div class="stat" id="v1">0</div></div>
+        <div><p class="lab">Hours per week after</p><div class="stat" id="v2">0</div></div>
+        <div><p class="lab">Released per week</p><div class="stat" style="color:var(--teal)" id="v3">0</div></div>
+        <div><p class="lab">Value released per year</p><div class="stat" style="color:var(--orange)" id="v4">$0</div></div>
+      </div>
+      <hr class="rule">
+      <p class="lab">Assumptions, change them if you disagree</p>
+      <div class="assum" style="margin-top:9px">
+        Effort removed at
+        <b style="color:var(--c1)">Humans augment AI</b> <input type="number" id="a1" value="30" min="0" max="100">%
+        <b style="color:var(--c2)">AI augments humans</b> <input type="number" id="a2" value="40" min="0" max="100">%
+        <b style="color:var(--c3)">Automate</b> <input type="number" id="a3" value="80" min="0" max="100">%
+      </div>
+      <p class="hint" style="margin-top:11px">These are starting estimates, not a forecast. In a real engagement each one is tested before anything is committed.</p>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="pane" data-p="4">
+    <div class="head">
+      <h1 class="h1">Decide where the released capacity goes</h1>
+      <p class="sub">This is the decision your people are watching. Make it explicitly, and say it out loud before the work changes rather than after.</p>
+    </div>
+    <div class="lev" id="lev"></div>
+    <div class="final" id="final"></div>
+    <div class="card" style="margin-top:16px">
+      <p class="lab">Now widen it out</p>
+      <div class="row" style="margin-top:12px;align-items:flex-end">
+        <div class="field"><label class="lab" for="hc">People in your organisation</label>
+          <input id="hc" class="inp big" type="number" min="1" max="500000" value="700"></div>
+        <p style="flex:1;min-width:260px;font-size:15px;font-weight:500" id="scaleline"></p>
+      </div>
+      <hr class="rule">
+      <div class="grid3">
+        <div><div class="stat" style="color:var(--teal)" id="n1">462</div>
+          <p style="margin-top:8px;font-size:13.5px">already use at least one AI tool regularly at work</p>
+          <p class="lab" style="margin-top:5px">66% of workers</p></div>
+        <div><div class="stat" style="color:var(--teal)" id="n2">259</div>
+          <p style="margin-top:8px;font-size:13.5px">of those rely on tools you have not approved</p>
+          <p class="lab" style="margin-top:5px">56% of users</p></div>
+        <div><div class="stat" style="color:var(--orange)" id="n3">63</div>
+          <p style="margin-top:8px;font-size:13.5px">have AI genuinely embedded in how they work</p>
+          <p class="lab" style="margin-top:5px">9% of desk workers</p></div>
+      </div>
+      <p style="margin-top:16px;font-size:14.5px" id="punch"></p>
+      <p class="hint" style="margin-top:10px;font-size:11.5px">Salesforce Agentic Workplace Study 2026 · Salesforce/YouGov Australia May 2026 · Gillespie et al. 2025, University of Melbourne and KPMG.</p>
+    </div>
+
+    <div class="cta">
+      <p style="font-weight:600;font-size:15px;max-width:56ch">This map took you ten minutes. The real one is tested, costed and built into your operating model.</p>
+      <div class="row">
+        <button class="ghost" id="printBtn">Print this map</button>
+        <a href="mailto:hello@wave.design?subject=Augmentation%20map" class="go" style="text-decoration:none">Send it to WAVE</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- print -->
+  <section class="pane" data-p="9" id="printPane"></section>
+</main>
+
+<div class="nav"><div class="navin">
+  <button class="ghost" id="back">Back</button>
+  <span class="hint" id="navhint"></span>
+  <button class="go" id="next">Continue</button>
+</div></div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const SCALE=[
+ {n:"Abstain from AI",s:"Humans do the work, without AI.",c:"var(--c0)"},
+ {n:"Humans augment AI",s:"AI drafts, a human corrects and owns it.",c:"var(--c1)"},
+ {n:"AI augments humans",s:"The human decides, AI supplies.",c:"var(--c2)"},
+ {n:"Automate with AI",s:"AI runs it, a named human owns the control.",c:"var(--c3)"}];
+const QS=[
+ {k:"j",q:"How much human judgement does this actually require?",
+  o:[["Almost none",1],["Some",0],["A lot",-2],["It is the whole job",-4]],
+  r:{"-4":"it is almost entirely judgement","-2":"it leans heavily on judgement","1":"it needs little judgement"}},
+ {k:"r",q:"What happens when it goes wrong?",
+  o:[["Barely noticed",1],["Some rework",0],["An unhappy customer",-2],["Regulatory or reputational damage",-4]],
+  r:{"-4":"the cost of being wrong is severe","-2":"a mistake reaches a customer","1":"a mistake is cheap"}},
+ {k:"c",q:"Can AI do this reliably today?",
+  o:[["Not close",-4],["Parts of it",-1],["Most of it",2],["All of it, consistently",4]],
+  r:{"-4":"the tools cannot do it yet","-1":"the tools only manage parts of it","2":"the tools handle most of it","4":"the tools handle it reliably"}},
+ {k:"f",q:"How often does it happen?",
+  o:[["Occasionally",0],["Weekly",.5],["Daily",1.5],["Many times a day",2.5]],
+  r:{"2.5":"it happens constantly","1.5":"it happens daily"}},
+ {k:"h",q:"Does it depend on a human relationship?",
+  o:[["Not at all",1],["Somewhat",-1],["Entirely",-4]],
+  r:{"-4":"it runs on a human relationship","-1":"there is a relationship involved"}},
+ {k:"o",q:"How would the team feel about AI doing this?",
+  o:[["They would resist",-1.5],["Mixed",0],["They would welcome it",1.5]],
+  r:{"-1.5":"the team would resist it","1.5":"the team would welcome it"}}];
+const SEEDS=["Drafting the monthly board pack","First-pass review of supplier contracts",
+"Triaging inbound complaints","Reconciling month-end exceptions","Writing customer responses",
+"Performance conversations","Preparing the weekly ops report","Checking applications against policy"];
+
+let step=0,cur=0;
+const SECTORS=[
+ ["Lightly regulated","Professional services, retail, marketing",0],
+ ["Customer data obligations","Privacy and records, no prudential oversight",-.5],
+ ["Prudentially or professionally regulated","Banking, insurance, health, legal",-1.5],
+ ["Safety critical","Where a failure can hurt someone",-2.5]];
+const MATUR=[
+ ["Nothing approved","People are using their own tools anyway",0,"Your starting point is shadow use. The first value here is often control, not speed."],
+ ["Approved tools, no real policy","Licences exist, use is uneven",0,"Licences without redesign is where most organisations stall."],
+ ["Approved tools and a policy","People know the rules and mostly follow them",1.5,"You have the foundation. What is missing is the work redesign on top of it."],
+ ["Already in some workflows","AI is doing real work in places",1.5,"You have proof it works. The question is which workflow is next and why."]];
+const S={hc:700,org:"",wf:"",fn:"",tasks:[],lever:null,a:[0,.3,.4,.8],
+  sec:null,risk:0,mat:null,orient:0,rate:85};
+const nf=n=>Math.round(n).toLocaleString();
+
+/* ---- steps rail ---- */
+const NAMES=["Calibrate","Workflow","Decide","Map","Value"];
+NAMES.forEach((n,i)=>{
+  const b=document.createElement("button");
+  b.innerHTML=`<i>${i+1}</i><span>${n}</span>`;
+  b.onclick=()=>{if(i<=maxStep())go(i)};
+  $("#steps").append(b);
+});
+function maxStep(){
+  if(!S.tasks.length||!S.wf)return 1;
+  if(S.tasks.some(t=>!t.p))return 2;
+  return 4;
+}
+function paintSteps(){
+  $$("#steps button").forEach((b,i)=>{
+    b.dataset.on=i===step?"1":"0";
+    b.dataset.done=i<step?"1":"0";
+  });
+}
+
+/* ---- 1 calibration ---- */
+function chips(host,arr,sel,cb){
+  const h=$(host);h.innerHTML="";
+  arr.forEach((a,i)=>{const b=document.createElement("button");b.textContent=a[0];
+    b.title=a[1];b.dataset.sel=sel===i?"1":"0";b.onclick=()=>cb(i);h.append(b)});
+}
+function paintCal(){
+  chips("#cq1",SECTORS,S.sec,i=>{S.sec=i;S.risk=SECTORS[i][2];paintCal();paintNav()});
+  chips("#cq2",MATUR,S.mat,i=>{S.mat=i;S.orient=MATUR[i][2];
+    S.tasks.forEach(t=>{if(t.a.o===undefined||!t.touchedO)t.a.o=S.orient});paintCal();paintNav()});
+  $("#cq1h").textContent=S.sec===null?"":
+    (S.risk<=-1.5?`Every task now starts with a heavier weighting on the cost of being wrong. ${SECTORS[S.sec][1]}.`
+     :`${SECTORS[S.sec][1]}. Risk is weighted normally.`);
+  $("#cq2h").textContent=S.mat===null?"":MATUR[S.mat][3];
+}
+$("#rate").oninput=e=>{S.rate=Math.max(0,+e.target.value||0);if(step>=3){paintMap();paintFinal()}};
+paintCal();
+
+/* ---- 2 ---- */
+function taskRow(t,i){
+  const d=document.createElement("div");d.className="ti";
+  d.innerHTML=`<input class="inp" value="${t.n.replace(/"/g,'&quot;')}" placeholder="Task ${i+1}">
+    <input class="inp mono" type="number" min="0" step="0.5" value="${t.h}" style="text-align:right">
+    <button class="x" aria-label="Remove">&times;</button>`;
+  const[a,b,x]=d.children;
+  a.oninput=e=>{t.n=e.target.value;paintNav()};
+  b.oninput=e=>{t.h=+e.target.value||0};
+  x.onclick=()=>{S.tasks=S.tasks.filter(z=>z!==t);paintTasks();paintNav()};
+  return d;
+}
+function paintTasks(){
+  const tl=$("#tl");tl.innerHTML="";
+  S.tasks.forEach((t,i)=>tl.append(taskRow(t,i)));
+}
+function addTask(n="",h=2){S.tasks.push({n,h,a:S.orient?{o:S.orient}:{},p:null,auto:null});paintTasks();paintNav()}
+$("#addTask").onclick=()=>{addTask();$$(".ti .inp")[(S.tasks.length-1)*2]?.focus()};
+SEEDS.forEach(s=>{const b=document.createElement("button");b.textContent=s;
+  b.onclick=()=>{addTask(s);b.disabled=true;b.style.opacity=.35};$("#seed").append(b)});
+$("#wfname").oninput=e=>{S.wf=e.target.value;paintNav()};
+$("#wffn").oninput=e=>S.fn=e.target.value;
+addTask("Triaging inbound complaints",6);addTask("Writing customer responses",9);
+addTask("Checking applications against policy",5);
+
+/* ---- 3 scoring ---- */
+function score(t){
+  let s=S.risk;const hits=[];
+  if(S.risk<=-1.5)hits.push({r:"you carry real regulatory exposure",w:1.6});
+  QS.forEach(q=>{
+    const v=t.a[q.k];
+    if(v===undefined)return;
+    s+=v;
+    const r=q.r[String(v)];
+    if(r)hits.push({r,w:Math.abs(v)});
+  });
+  let i;
+  if(s<=-6)i=0;else if(s<=-1)i=1;else if(s<=5)i=2;else i=3;
+  const cap=t.a.c;
+  if(cap===-4&&i>1)i=1;
+  hits.sort((a,b)=>b.w-a.w);
+  return{s,i,why:hits.slice(0,3).map(h=>h.r)};
+}
+function answered(t){return QS.every(q=>t.a[q.k]!==undefined)}
+function paintPager(){
+  const p=$("#pager");p.innerHTML="";
+  S.tasks.forEach((t,i)=>{
+    const b=document.createElement("button");b.textContent=i+1;
+    b.dataset.on=i===cur?"1":"0";b.dataset.fill=t.p?"1":"0";
+    b.title=t.n;b.onclick=()=>{cur=i;paintDecide()};p.append(b);
+  });
+}
+function paintDecide(){
+  const t=S.tasks[cur];if(!t)return;
+  paintPager();
+  $("#tname").textContent=t.n||`Task ${cur+1}`;
+  $("#thrs").textContent=`${t.h} hours per week`+(S.wf?` · ${S.wf}`:"");
+  const qs=$("#qs");qs.innerHTML="";
+  QS.forEach(q=>{
+    const d=document.createElement("div");d.className="q";
+    d.innerHTML=`<p>${q.q}</p><div class="opts"></div>`;
+    q.o.forEach(([lab,v])=>{
+      const b=document.createElement("button");b.textContent=lab;
+      b.dataset.sel=t.a[q.k]===v?"1":"0";
+      b.onclick=()=>{t.a[q.k]=v;if(q.k==="o")t.touchedO=1;if(!t.locked)t.p=null;paintDecide();paintNav()};
+      d.querySelector(".opts").append(b);
+    });
+    qs.append(d);
+  });
+  const r=score(t);const done=answered(t);
+  if(!t.locked)t.auto=done?r.i:null;
+  const g=$("#gauge");g.innerHTML=`<div class="tr"></div>`;
+  const show=t.p?SCALE.indexOf(SCALE.find(x=>x.n===t.p)):(done?r.i:-1);
+  SCALE.forEach((sc,i)=>{
+    const x=12.5+i*25;
+    const pip=document.createElement("div");pip.className="pip"+(i===show?" on":"");
+    pip.style.left=x+"%";if(i===show)pip.style.background=sc.c;
+    const cap=document.createElement("div");cap.className="cap";cap.style.left=x+"%";
+    cap.textContent=sc.n.replace(" from AI","").replace(" with AI","").replace(" augment AI","+AI").replace("AI augments ","AI+");
+    g.append(pip,cap);
+  });
+  if(done){
+    const idx=show;
+    $("#verdict").textContent=SCALE[idx].n;
+    $("#verdict").style.color=SCALE[idx].c;
+    const w=r.why.length?r.why.join(", and "):"the answers balance out";
+    $("#because").textContent=(t.p&&r.i!==idx?"You moved this. The framework read it as "+SCALE[r.i].n+", because ":"Because ")+w+".";
+  }else{
+    $("#verdict").textContent="Answer the questions";$("#verdict").style.color="var(--ink)";
+    $("#because").textContent=`${QS.filter(q=>t.a[q.k]!==undefined).length} of 6 answered.`;
+  }
+  const ov=$("#ov");ov.innerHTML="";
+  SCALE.forEach((sc,i)=>{
+    const b=document.createElement("button");b.textContent=sc.n;
+    b.dataset.sel=(t.p===sc.n)?"1":"0";
+    b.onclick=()=>{t.p=sc.n;t.locked=true;paintDecide();paintNav();};
+    ov.append(b);
+  });
+}
+$("#pager").addEventListener("click",()=>{});
+
+/* ---- 4 map ---- */
+function commitAuto(){S.tasks.forEach(t=>{if(!t.p&&answered(t))t.p=SCALE[score(t).i].n})}
+function paintMap(){
+  commitAuto();
+  $("#maptitle").textContent=(S.org?S.org+": ":"")+(S.wf||"Your workflow");
+  const ab=S.tasks.filter(t=>t.p===SCALE[0].n).length;
+  $("#mapsub").textContent=`${S.tasks.length} tasks placed${S.fn?", "+S.fn:""}. `+
+    (ab?`${ab} we would leave alone entirely, and that is the point of doing this properly.`:
+    `Nothing was ruled out, which is unusual. Worth a second look at the judgement-heavy ones.`);
+  const c=$("#cols");c.innerHTML="";
+  SCALE.forEach((sc,i)=>{
+    const d=document.createElement("div");d.className="col";
+    const list=S.tasks.filter(t=>t.p===sc.n);
+    d.innerHTML=`<div class="colbar" style="background:${sc.c}"></div>
+      <h3 style="color:${sc.c}">${sc.n}</h3>
+      <p class="hint" style="font-size:12px">${sc.s}</p>
+      <p class="lab">${list.length} task${list.length===1?"":"s"} · ${list.reduce((a,t)=>a+t.h,0)} hrs/wk</p>`;
+    list.forEach(t=>{const e=document.createElement("div");e.className="chip";
+      e.innerHTML=`<b>${t.n||"Untitled"}</b><span>${t.h} hrs/wk</span>`;d.append(e)});
+    c.append(d);
+  });
+  const now=S.tasks.reduce((a,t)=>a+t.h,0);
+  const after=S.tasks.reduce((a,t)=>a+t.h*(1-S.a[SCALE.findIndex(x=>x.n===t.p)]||0),0);
+  $("#v1").textContent=nf(now);$("#v2").textContent=nf(after);
+  $("#v3").textContent=nf(now-after);$("#v4").textContent="$"+nf((now-after)*46*S.rate);
+}
+["a1","a2","a3"].forEach((id,i)=>$("#"+id).oninput=e=>{S.a[i+1]=(+e.target.value||0)/100;paintMap()});
+
+/* ---- 5 ---- */
+const LEV=[["Invest in current operations","Lift service levels, resilience, consistency or control. Usually where the first gains actually land."],
+["Invest in future growth","Build new AI-era products, services, capabilities or markets."],
+["Improve the bottom line","Remove cost, avoid future labour spend, increase margin."]];
+LEV.forEach(([n,d],i)=>{
+  const b=document.createElement("button");
+  b.innerHTML=`<h3>${n}</h3><p>${d}</p>`;
+  b.onclick=()=>{S.lever=n;$$("#lev button").forEach((x,j)=>x.dataset.sel=j===i?"1":"0");paintFinal()};
+  $("#lev").append(b);
+});
+function paintFinal(){
+  const now=S.tasks.reduce((a,t)=>a+t.h,0);
+  const after=S.tasks.reduce((a,t)=>a+t.h*(1-S.a[SCALE.findIndex(x=>x.n===t.p)]||0),0);
+  const rel=now-after, ab=S.tasks.filter(t=>t.p===SCALE[0].n);
+  $("#final").innerHTML=`<p class="lab" style="color:#AFC0D0">What you would say to your team</p>
+  <p style="font-size:17px;line-height:1.5;margin-top:12px;max-width:76ch">
+  We looked at <b>${S.wf||"this workflow"}</b> task by task. We are changing
+  <b>${S.tasks.length-ab.length} of ${S.tasks.length}</b> tasks and deliberately leaving
+  <b>${ab.length}</b> alone${ab.length?` — ${ab.map(t=>t.n).join(", ")}`:""}.
+  That releases about <span class="stat" style="font-size:22px">${nf(rel)}</span> hours a week, or about
+  <span class="stat" style="font-size:22px">$${nf(rel*46*S.rate)}</span> a year.
+  ${S.lever?`We are putting it into <b>${S.lever.toLowerCase()}</b>.`:`<em style="opacity:.7">Choose a lever above to finish this sentence.</em>`}</p>`;
+  paintScale(rel);
+}
+function paintScale(rel){
+  const n=Math.max(1,Math.min(500000,+($("#hc")?.value)||700));S.hc=n;
+  $("#n1").textContent=nf(n*.66);$("#n2").textContent=nf(n*.66*.56);$("#n3").textContent=nf(n*.09);
+  $("#scaleline").textContent=`You just found ${nf(rel)} hours a week inside one workflow of one function. Most organisations of ${nf(n)} people are running twenty or thirty workflows of that size.`;
+  $("#punch").textContent=`Meanwhile about ${nf(n*.66*.56)} of your people are already making decisions about your data on tools nobody approved, and only ${nf(n*.09)} have AI genuinely embedded in how they work. The gap between those two numbers is the whole opportunity.`;
+}
+document.addEventListener("input",e=>{if(e.target.id==="hc"&&step===4){
+  const now=S.tasks.reduce((a,t)=>a+t.h,0);
+  const after=S.tasks.reduce((a,t)=>a+t.h*(1-S.a[SCALE.findIndex(x=>x.n===t.p)]||0),0);
+  paintScale(now-after);}});
+$("#printBtn").onclick=()=>{buildPrint();window.print()};
+function buildPrint(){
+  commitAuto();
+  const now=S.tasks.reduce((a,t)=>a+t.h,0);
+  const after=S.tasks.reduce((a,t)=>a+t.h*(1-S.a[SCALE.findIndex(x=>x.n===t.p)]||0),0);
+  $("#printPane").className="pane print";
+  $("#printPane").innerHTML=`<h1 class="h1">${(S.org?S.org+": ":"")+(S.wf||"Augmentation map")}</h1>
+  <p class="sub">${S.fn||""} · ${S.tasks.length} tasks · ${nf(now-after)} hours a week released · about $${nf((now-after)*46*S.rate)} a year</p>
+  ${SCALE.map(sc=>{const l=S.tasks.filter(t=>t.p===sc.n);return l.length?
+   `<h3 style="margin-top:18px;color:${sc.c}">${sc.n}</h3>
+    <ul style="margin:6px 0 0;padding-left:18px;font-size:14px">
+    ${l.map(t=>`<li>${t.n} <span class="mono" style="color:#666">(${t.h} hrs/wk)</span></li>`).join("")}</ul>`:""}).join("")}
+  <p class="hint" style="margin-top:22px">Produced with the WAVE Disciplined Augmentation framework. hello@wave.design</p>`;
+}
+
+/* ---- nav ---- */
+function paintNav(){
+  const ok=[
+    S.sec!==null&&S.mat!==null,
+    S.wf.trim()&&S.tasks.filter(t=>t.n.trim()).length>=3,
+    S.tasks.every(t=>t.p||answered(t)),
+    true,true][step];
+  $("#next").disabled=!ok;
+  $("#next").textContent=step===4?"Start again":"Continue";
+  $("#back").style.visibility=step?"visible":"hidden";
+  const hints=["Answer all three to continue","Name the workflow and list at least three tasks",
+    `${S.tasks.filter(t=>t.p||answered(t)).length} of ${S.tasks.length} tasks decided`,"","" ];
+  $("#navhint").textContent=hints[step]||"";
+  paintSteps();
+}
+function go(i){
+  step=i;
+  $$(".pane").forEach(p=>p.classList.toggle("on",+p.dataset.p===step));
+  if(step===2){S.tasks=S.tasks.filter(t=>t.n.trim());cur=Math.min(cur,S.tasks.length-1);paintDecide()}
+  if(step===3)paintMap();
+  if(step===4){paintMap();paintFinal()}
+  paintNav();window.scrollTo({top:0,behavior:"instant"});
+}
+$("#next").onclick=()=>{
+  if(step===2&&S.tasks.some(t=>!t.p&&!answered(t))){
+    const i=S.tasks.findIndex(t=>!t.p&&!answered(t));cur=i;paintDecide();return;}
+  if(step===4){location.reload();return}
+  go(step+1);
+};
+$("#back").onclick=()=>go(Math.max(0,step-1));
+$("#theme").onclick=()=>{
+  const c=document.documentElement.getAttribute("data-theme");
+  const d=c?c==="dark":matchMedia("(prefers-color-scheme:dark)").matches;
+  document.documentElement.setAttribute("data-theme",d?"light":"dark");
+  try{localStorage.setItem("am-t",d?"light":"dark")}catch(e){}
+};
+try{const t=localStorage.getItem("am-t");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}
+paintTasks();paintNav();
+</script>
